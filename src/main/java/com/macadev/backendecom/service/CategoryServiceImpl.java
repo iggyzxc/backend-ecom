@@ -1,6 +1,8 @@
 package com.macadev.backendecom.service;
 
 import com.macadev.backendecom.model.Category;
+import com.macadev.backendecom.repository.CategoryRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -8,52 +10,43 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 
+@AllArgsConstructor
 @Service
 public class CategoryServiceImpl implements CategoryService {
-    private List<Category> categories = new ArrayList<>();
-    private Long nextId = 1L; // Simulating auto-increment ID for categories
+
+    private final CategoryRepository categoryRepository;
 
     @Override
     public List<Category> getAllCategories() {
-        return categories;
+        return categoryRepository.findAll();
     }
 
     @Override
     public Category getCategoryById(Long id) {
-        return categories.stream()
-                .filter(c -> c.getCategoryId().equals(id))
-                .findFirst()
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+    }
+
+    @Override
+    public Category createCategory(Category category) {
+        category.setCategoryName(category.getCategoryName());
+        return categoryRepository.save(category);
+    }
+
+    @Override
+    public Category updateCategory(Category category, Long categoryId) {
+        Category existingCategory = categoryRepository.findById(categoryId)
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
-    }
-
-    @Override
-    public void createCategory(Category category) {
-        category.setCategoryId(nextId++);
-        categories.add(category);
-    }
-
-    @Override
-    public void updateCategory(Category category, Long categoryId) {
-        Category existingCategory = categories.stream()
-                .filter(c -> c.getCategoryId().equals(categoryId))
-                .findFirst()
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found")
-                );
         existingCategory.setCategoryName(category.getCategoryName());
         existingCategory.setCategoryId(categoryId);
+        return categoryRepository.save(existingCategory);
     }
 
     @Override
-    public String deleteCategory(Long categoryId) {
-        Category category = categories.stream()
-                .filter(c->c.getCategoryId().equals(categoryId))
-                .findFirst()
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found")
-                );
-        categories.remove(category);
-        return "Category deleted successfully!";
+    public void deleteCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+        categoryRepository.delete(category);
     }
 }

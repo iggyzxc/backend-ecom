@@ -17,34 +17,32 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping("/public/categories")
-    public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return ResponseEntity.status(HttpStatus.OK).body(categories);
     }
 
     @GetMapping("/public/categories/{categoryId}")
-    public Category getCategoryById(@PathVariable Long categoryId) {
-        return categoryService.getCategoryById(categoryId);
+    public ResponseEntity<Category> getCategoryById(@PathVariable Long categoryId) {
+        Category category = categoryService.getCategoryById(categoryId);
+        return ResponseEntity.status(HttpStatus.OK).body(category);
     }
 
     @PostMapping("/public/categories")
-    public String createCategory(@RequestBody Category category) {
-        categoryService.createCategory(category);
-        return "Category created successfully!";
+    public ResponseEntity<Category> createCategory(@RequestBody Category category) {
+        Category savedCategory = categoryService.createCategory(category);
+        return new ResponseEntity<>(savedCategory, HttpStatus.CREATED);
     }
 
     @PutMapping("/public/categories/{categoryId}")
-    public String updateCategory(@RequestBody Category category, @PathVariable Long categoryId) {
-        categoryService.updateCategory(category, categoryId);
-        return "Category updated successfully!";
+    public ResponseEntity<Category> updateCategory(@RequestBody Category category, @PathVariable Long categoryId) {
+        Category updatedCategory = categoryService.updateCategory(category, categoryId);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
     }
 
     @DeleteMapping("/admin/categories/{categoryId}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long categoryId) {
-        try {
-            String status = categoryService.deleteCategory(categoryId);
-            return new ResponseEntity<>(status, HttpStatus.OK);
-        } catch (ResponseStatusException e) {
-            return new ResponseEntity<>(e.getReason(), e.getStatusCode());
-        }
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId) {
+        categoryService.deleteCategory(categoryId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
